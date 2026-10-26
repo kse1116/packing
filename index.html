@@ -2,1686 +2,805 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0,
-                 maximum-scale=1.0, user-scalable=no">
-
-  <title>긴급대책AI</title>
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스마트 캐리어 패킹 & 이너백 시뮬레이터</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+    .suitcase-shell {
+      border: 6px solid #334155;
+      border-radius: 28px;
+      background: #e2e8f0;
+      box-shadow: inset 0 4px 12px rgba(0,0,0,0.15), 0 10px 25px rgba(0,0,0,0.1);
+      position: relative;
     }
-
-    body {
-      margin: 0;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        "Noto Sans KR",
-        sans-serif;
-      background: #f3f4f6;
-      color: #111827;
+    .suitcase-hinge {
+      width: 14px;
+      background: repeating-linear-gradient(0deg, #475569, #475569 10px, #1e293b 10px, #1e293b 20px);
+      border-radius: 4px;
     }
-
-    button, input, textarea, select {
-      font: inherit;
+    .pouch-block {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    button {
-      border: 0;
-      cursor: pointer;
+    .pouch-block:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.12);
     }
-
-    .app {
-      min-height: 100vh;
-      padding-bottom: 76px;
-    }
-
-    .header {
-      background: #ffffff;
-      padding: 18px 18px 14px;
-      border-bottom: 1px solid #e5e7eb;
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
-
-    .header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .title {
-      font-size: 22px;
-      font-weight: 800;
-    }
-
-    .user-name {
-      font-size: 13px;
-      color: #6b7280;
-      margin-top: 3px;
-    }
-
-    .refresh-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: #f3f4f6;
-      font-size: 20px;
-    }
-
-    .content {
-      padding: 16px;
-    }
-
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .welcome {
-      background: #111827;
-      color: white;
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-
-    .welcome-title {
-      font-size: 20px;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .welcome-text {
-      font-size: 13px;
-      opacity: 0.8;
-      line-height: 1.5;
-    }
-
-    .section-title {
-      font-size: 17px;
-      font-weight: 800;
-      margin: 20px 0 10px;
-    }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .menu-card {
-      background: white;
-      border-radius: 16px;
-      padding: 18px 14px;
-      text-align: left;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    }
-
-    .menu-card:active {
-      transform: scale(0.98);
-    }
-
-    .menu-icon {
-      font-size: 25px;
-      margin-bottom: 8px;
-    }
-
-    .menu-title {
-      font-weight: 800;
-      font-size: 15px;
-    }
-
-    .menu-desc {
-      color: #6b7280;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .item {
-      background: white;
-      border-radius: 15px;
-      padding: 15px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    }
-
-    .item-main {
-      font-weight: 700;
-      font-size: 15px;
-      line-height: 1.45;
-    }
-
-    .item-meta {
-      color: #6b7280;
-      font-size: 12px;
-      margin-top: 7px;
-      line-height: 1.5;
-    }
-
-    .item-actions {
-      display: flex;
-      gap: 7px;
-      margin-top: 11px;
-    }
-
-    .small-btn {
-      padding: 8px 12px;
-      border-radius: 9px;
-      background: #f3f4f6;
-      color: #374151;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .small-btn.delete {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-
-    .primary-btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 13px;
-      background: #111827;
-      color: white;
-      font-weight: 800;
-      margin-bottom: 12px;
-    }
-
-    .secondary-btn {
-      width: 100%;
-      padding: 13px;
-      border-radius: 13px;
-      background: white;
-      color: #111827;
-      font-weight: 700;
-      border: 1px solid #e5e7eb;
-    }
-
-    .form {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 15px;
-    }
-
-    .form-title {
-      font-size: 16px;
-      font-weight: 800;
-      margin-bottom: 13px;
-    }
-
-    .field {
-      margin-bottom: 11px;
-    }
-
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: #4b5563;
-      margin-bottom: 5px;
-    }
-
-    .field input,
-    .field textarea,
-    .field select {
-      width: 100%;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      padding: 11px;
-      background: white;
-      outline: none;
-    }
-
-    .field input:focus,
-    .field textarea:focus,
-    .field select:focus {
-      border-color: #111827;
-    }
-
-    .field textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
-
-    .empty {
-      background: white;
-      border-radius: 15px;
-      padding: 30px 16px;
-      text-align: center;
-      color: #9ca3af;
-      font-size: 13px;
-    }
-
-    .news-card {
-      background: white;
-      border-radius: 15px;
-      padding: 15px;
-      margin-bottom: 10px;
-    }
-
-    .news-title {
-      font-weight: 800;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .news-meta {
-      color: #9ca3af;
-      font-size: 11px;
-      margin-top: 7px;
-    }
-
-    .news-briefing {
-      background: #111827;
-      color: white;
-      border-radius: 15px;
-      padding: 16px;
-      margin-bottom: 12px;
-      line-height: 1.65;
-      font-size: 13px;
-      white-space: pre-wrap;
-    }
-
-    .ai-answer {
-      white-space: pre-wrap;
-      background: white;
-      border-radius: 15px;
-      padding: 16px;
-      line-height: 1.65;
-      font-size: 14px;
-      margin-top: 12px;
-    }
-
-    .bottom-nav {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 68px;
-      background: rgba(255,255,255,0.97);
-      border-top: 1px solid #e5e7eb;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      z-index: 50;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    .nav-btn {
-      background: transparent;
-      color: #9ca3af;
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-    }
-
-    .nav-btn.active {
-      color: #111827;
-      font-weight: 800;
-    }
-
-    .nav-icon {
-      font-size: 20px;
-    }
-
-    .loading {
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.75);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-
-    .loading.show {
-      display: flex;
-    }
-
-    .loading-box {
-      background: #111827;
-      color: white;
-      padding: 18px 22px;
-      border-radius: 14px;
-      font-size: 14px;
-    }
-
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
-      display: none;
-      align-items: flex-end;
-      z-index: 80;
-    }
-
-    .modal.show {
-      display: flex;
-    }
-
-    .modal-box {
-      background: white;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      border-radius: 22px 22px 0 0;
-      padding: 20px;
-      padding-bottom: calc(20px + env(safe-area-inset-bottom));
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 15px;
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-    .close-btn {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: #f3f4f6;
-      font-size: 18px;
-    }
-
-    .notice {
-      background: #fff7ed;
-      color: #9a3412;
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 12px;
-      line-height: 1.5;
-      margin-bottom: 12px;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .settlement-card-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .settlement-checkbox {
-      width: 20px;
-      height: 20px;
-      margin-top: 2px;
-      accent-color: #111827;
-    }
-
-    .calc-panel {
+    .wheel {
+      width: 24px;
+      height: 14px;
       background: #1e293b;
-      color: white;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 15px;
-    }
-
-    .filter-bar {
-      background: white;
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 15px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .filter-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .filter-btn-group {
-      display: flex;
-      gap: 6px;
-      margin-top: 10px;
-    }
-
-    .filter-tag-btn {
-      flex: 1;
-      padding: 8px;
-      border-radius: 8px;
-      background: #f3f4f6;
-      color: #4b5563;
-      font-size: 12px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    .filter-tag-btn.active {
-      background: #111827;
-      color: white;
-    }
-
-    .search-box {
-      width: 100%;
-      padding: 11px 14px;
-      border-radius: 12px;
-      border: 1px solid #d1d5db;
-      background: white;
-      margin-bottom: 15px;
-      font-size: 13px;
-      outline: none;
-    }
-    .search-box:focus {
-      border-color: #111827;
-    }
-
-    .member-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #334155;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #f8fafc;
-      cursor: pointer;
-      user-select: none;
-    }
-    .member-chip input {
-      width: 15px;
-      height: 15px;
-      accent-color: #38bdf8;
+      border-radius: 0 0 6px 6px;
     }
   </style>
 </head>
+<body class="text-slate-800">
 
-<body>
-
-<div id="loading" class="loading">
-  <div class="loading-box">처리 중입니다...</div>
-</div>
-
-<div id="outsideTelegram" class="hidden">
-  <div style="padding:40px 20px;text-align:center;">
-    <div style="font-size:50px;margin-bottom:15px;">🤖</div>
-    <h2>긴급대책AI</h2>
-    <p style="color:#6b7280;line-height:1.6;">
-      Telegram 앱 안에서<br>
-      긴급대책AI 메뉴 버튼으로 열어주세요.
-    </p>
-  </div>
-</div>
-
-<div id="app" class="app hidden">
-  <header class="header">
-    <div class="header-row">
-      <div>
-        <div class="title">긴급대책AI</div>
-        <div id="userName" class="user-name">로그인 확인 중...</div>
+  <!-- 상단 컨트롤 헤더 -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🧳</span>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900">스마트 캐리어 패킹 시뮬레이터</h1>
+          <p class="text-xs text-slate-500">부피 계산 & 이너백(패킹 큐브) 자동 그룹핑 시스템</p>
+        </div>
       </div>
-      <button class="refresh-btn" onclick="refreshCurrent()">↻</button>
+
+      <!-- 프리셋 버튼 -->
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="text-xs font-semibold text-slate-500 mr-1">✈️ 추천 프리셋:</span>
+        <button onclick="applyPreset('summer')" class="px-2.5 py-1.5 text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200 rounded-lg hover:bg-sky-100">🌴 여름 동남아 3박</button>
+        <button onclick="applyPreset('winter')" class="px-2.5 py-1.5 text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100">❄️ 겨울 일본 4박</button>
+        <button onclick="applyPreset('long')" class="px-2.5 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100">🌍 유럽 2주</button>
+        <button onclick="resetAll()" class="px-2.5 py-1.5 text-xs font-medium bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 ml-1">초기화</button>
+      </div>
     </div>
   </header>
 
-  <main class="content">
-
-    <!-- 홈 -->
-    <section id="page-home" class="page active">
-      <div class="welcome">
-        <div class="welcome-title">긴급대책AI</div>
-        <div class="welcome-text">일정, 정산, 메모를 한 곳에서 관리하세요.</div>
-      </div>
-
-      <div class="card-grid">
-        <button class="menu-card" onclick="showPage('schedule')">
-          <div class="menu-icon">📅</div>
-          <div class="menu-title">일정</div>
-          <div class="menu-desc">일정 등록·수정·삭제</div>
-        </button>
-
-        <button class="menu-card" onclick="showPage('settlement')">
-          <div class="menu-icon">💰</div>
-          <div class="menu-title">정산</div>
-          <div class="menu-desc">비용 분담 및 송금 계산</div>
-        </button>
-
-        <button class="menu-card" onclick="showPage('memo')">
-          <div class="menu-icon">📝</div>
-          <div class="menu-title">메모</div>
-          <div class="menu-desc">공유 메모 관리</div>
-        </button>
-
-        <button class="menu-card" onclick="showNews()">
-          <div class="menu-icon">📰</div>
-          <div class="menu-title">뉴스</div>
-          <div class="menu-desc">오늘의 모닝 브리핑</div>
-        </button>
-      </div>
-
-      <div class="section-title">AI에게 물어보기</div>
-      <button class="primary-btn" onclick="showPage('ai')">🤖 긴급대책AI에게 질문</button>
-
-      <div class="section-title">오늘의 일정</div>
-      <div id="homeSchedules"></div>
-    </section>
-
-    <!-- 일정 -->
-    <section id="page-schedule" class="page">
-      <div class="section-title">일정 관리</div>
-
-      <div class="form">
-        <div class="form-title">일정 등록</div>
-        <div class="field">
-          <label>날짜</label>
-          <input id="scheduleDate" type="date">
-        </div>
-        <div class="field">
-          <label>시간</label>
-          <input id="scheduleTime" type="time">
-        </div>
-        <div class="field">
-          <label>일정</label>
-          <input id="scheduleTitle" placeholder="예: 팀 정기 미팅">
-        </div>
-        <button class="primary-btn" onclick="addSchedule()">일정 등록</button>
-      </div>
-
-      <div class="filter-btn-group" style="margin-bottom:15px;">
-        <button id="btnScheduleUpcoming" class="filter-tag-btn" onclick="setScheduleFilter('upcoming')">다가올 일정</button>
-        <button id="btnScheduleAll" class="filter-tag-btn active" onclick="setScheduleFilter('all')">전체 일정</button>
-        <button id="btnSchedulePast" class="filter-tag-btn" onclick="setScheduleFilter('past')">지난 일정</button>
-      </div>
-
-      <div class="section-title" id="scheduleListTitle">일정 목록</div>
-      <div id="scheduleList" class="list"></div>
-    </section>
-
-    <!-- 정산 -->
-    <section id="page-settlement" class="page">
-      <div class="section-title">스마트 N빵 정산</div>
-
-      <div class="calc-panel">
-        <div style="font-weight:800; font-size:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-          <span>💡 정산 송금 계산기</span>
-          <span style="font-size:11px; opacity:0.8;">결제자 = 등록자</span>
-        </div>
-
-        <div style="margin-bottom:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label style="font-size:12px; color:#cbd5e1; font-weight:700;">참여 멤버 선택 (체크된 인원으로 N빵)</label>
-            <button class="small-btn" onclick="promptAddCustomMember()" style="padding:4px 8px; font-size:11px; background:#334155; color:#93c5fd;">+ 직접 추가</button>
-          </div>
-          
-          <div id="memberCheckboxContainer" style="display:flex; flex-wrap:wrap; gap:6px; min-height:32px; align-items:center;">
-            <span style="font-size:12px; color:#94a3b8;">멤버 목록을 불러오는 중...</span>
-          </div>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
-          <button class="small-btn" onclick="toggleSelectAllSettlements()" style="background:#334155; color:white;">지출 전체선택/해제</button>
-          <button class="small-btn" onclick="runSettlementCalc()" style="background:#38bdf8; color:#0f172a; font-weight:800;">송금 계산 실행</button>
-        </div>
-
-        <div id="calcResultBox" style="margin-top:14px; padding-top:12px; border-top:1px solid #334155; display:none;"></div>
-      </div>
-
-      <div class="filter-bar">
-        <div style="font-weight:700; font-size:13px; margin-bottom:8px; color:#374151;">📅 정산 기간 조회</div>
-        <div class="filter-row">
-          <input id="filterStartDate" type="date" onchange="applySettlementDateFilter()" style="flex:1; padding:8px; font-size:12px; border:1px solid #d1d5db; border-radius:8px;">
-          <span style="color:#9ca3af;">~</span>
-          <input id="filterEndDate" type="date" onchange="applySettlementDateFilter()" style="flex:1; padding:8px; font-size:12px; border:1px solid #d1d5db; border-radius:8px;">
-        </div>
-        <div class="filter-btn-group">
-          <button class="filter-tag-btn" onclick="setQuickSettlementRange('7d')">최근 7일</button>
-          <button class="filter-tag-btn" onclick="setQuickSettlementRange('1m')">최근 1개월</button>
-          <button class="filter-tag-btn" onclick="setQuickSettlementRange('thisMonth')">이번 달</button>
-          <button class="filter-tag-btn active" onclick="setQuickSettlementRange('all')">전체</button>
-        </div>
-      </div>
-
-      <div class="form">
-        <div class="form-title">새 지출 내역 등록</div>
-        <div class="field">
-          <label>날짜</label>
-          <input id="settlementDate" type="date">
-        </div>
-        <div class="field">
-          <label>내용</label>
-          <input id="settlementContent" placeholder="예: 1차 식사">
-        </div>
-        <div class="field">
-          <label>결제 금액</label>
-          <input id="settlementAmount" type="number" inputmode="numeric" placeholder="예: 60000">
-        </div>
-        <div class="field">
-          <label>비고</label>
-          <input id="settlementNote" placeholder="선택사항 (예: 대리결제)">
-        </div>
-        <button class="primary-btn" onclick="addSettlement()">지출 등록</button>
-      </div>
-
-      <div class="section-title" id="settlementListTitle">지출 내역 목록 (선택하여 정산)</div>
-      <div id="settlementList" class="list"></div>
-    </section>
-
-    <!-- 메모 -->
-    <section id="page-memo" class="page">
-      <div class="section-title">공유 메모</div>
-      <input id="memoSearchInput" class="search-box" placeholder="🔍 메모 내용 또는 등록자 검색..." oninput="filterMemos()">
-
-      <div class="form">
-        <div class="form-title">새 메모 등록</div>
-        <div class="field">
-          <label>날짜</label>
-          <input id="memoDate" type="date">
-        </div>
-        <div class="field">
-          <label>메모</label>
-          <textarea id="memoText" placeholder="공유할 내용을 입력하세요"></textarea>
-        </div>
-        <div class="field">
-          <label>비고</label>
-          <input id="memoNote" placeholder="선택사항">
-        </div>
-        <button class="primary-btn" onclick="addMemo()">메모 등록</button>
-      </div>
-
-      <div class="section-title" id="memoListTitle">메모 목록</div>
-      <div id="memoList" class="list"></div>
-    </section>
-
-    <!-- 뉴스 -->
-    <section id="page-news" class="page">
-      <div class="section-title">오늘의 뉴스</div>
-      <button class="primary-btn" onclick="loadNews()">📰 최신 뉴스 새로고침</button>
-      <div id="newsList"></div>
-    </section>
-
-    <!-- AI -->
-    <section id="page-ai" class="page">
-      <div class="section-title">긴급대책AI</div>
-      <div class="notice">
-        일정, 정산, 뉴스, 상황 판단 등에 대해 자유롭게 질문하세요.
-      </div>
-      <div class="form">
-        <div class="field">
-          <label>질문</label>
-          <textarea id="aiQuestion" placeholder="예: 오늘 일정과 관련해서 주의할 점을 정리해줘."></textarea>
-        </div>
-        <button class="primary-btn" onclick="askAI()">🤖 AI에게 질문</button>
-      </div>
-      <div id="aiAnswer"></div>
-    </section>
-  </main>
-
-  <nav class="bottom-nav">
-    <button id="nav-home" class="nav-btn active" onclick="showPage('home')">
-      <span class="nav-icon">🏠</span>홈
-    </button>
-    <button id="nav-schedule" class="nav-btn" onclick="showPage('schedule')">
-      <span class="nav-icon">📅</span>일정
-    </button>
-    <button id="nav-settlement" class="nav-btn" onclick="showPage('settlement')">
-      <span class="nav-icon">💰</span>정산
-    </button>
-    <button id="nav-memo" class="nav-btn" onclick="showPage('memo')">
-      <span class="nav-icon">📝</span>메모
-    </button>
-    <button id="nav-ai" class="nav-btn" onclick="showPage('ai')">
-      <span class="nav-icon">🤖</span>AI
-    </button>
-  </nav>
-</div>
-
-<!-- 수정 모달 -->
-<div id="editModal" class="modal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div id="modalTitle" class="modal-title">수정</div>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-    <div id="modalFields"></div>
-    <button class="primary-btn" onclick="saveEdit()">저장</button>
-    <button class="secondary-btn" onclick="closeModal()">취소</button>
-  </div>
-</div>
-
-<script>
-  const API_URL = "https://script.google.com/macros/s/AKfycby3OEfk0jjKccfdviqgePbcPSIdiWOX8ezss7g9KN52KxWoWosdRgmNUc8fL1r4y9ko/exec";
-
-  let tg = null;
-  let initData = "";
-  let schedules = [];
-  let settlements = [];
-  let memos = [];
-  let chatMembers = [];
-
-  let currentPage = "home";
-  let editType = "";
-  let editRow = null;
-  let editData = null;
-
-  let scheduleFilterMode = "all";
-
-  let lastSettlementResult = null;
-  let lastIncludedItems = [];
-
-  function initTelegram() {
-    if (!window.Telegram || !window.Telegram.WebApp) {
-      document.getElementById("outsideTelegram").classList.remove("hidden");
-      return false;
-    }
-
-    tg = window.Telegram.WebApp;
-    try { tg.ready(); tg.expand(); } catch (e) {}
-    initData = tg.initData || "";
-
-    if (!initData) {
-      document.getElementById("outsideTelegram").classList.remove("hidden");
-      return false;
-    }
-
-    document.getElementById("app").classList.remove("hidden");
-    const user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
-
-    if (user) {
-      let name = "";
-      if (user.first_name) name += user.first_name;
-      if (user.last_name) name += (name ? " " : "") + user.last_name;
-      if (user.username) name += (name ? " " : "") + "@" + user.username;
-      document.getElementById("userName").textContent = name || "Telegram 사용자";
-    } else {
-      document.getElementById("userName").textContent = "Telegram 사용자";
-    }
-
-    return true;
-  }
-
-  function api(action, params = {}) {
-    return new Promise(function(resolve, reject) {
-      if (!initData) {
-        reject(new Error("Telegram 인증 정보가 없습니다."));
-        return;
-      }
-
-      const callbackName = "__miniAppCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-      const script = document.createElement("script");
-      const query = [];
-
-      query.push("action=" + encodeURIComponent(action));
-      query.push("initData=" + encodeURIComponent(initData));
-      query.push("callback=" + encodeURIComponent(callbackName));
-      query.push("ts=" + Date.now());
-
-      Object.keys(params).forEach(function(key) {
-        const value = params[key] === undefined || params[key] === null ? "" : params[key];
-        query.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
-      });
-
-      const url = API_URL + "?" + query.join("&");
-      let finished = false;
-
-      const timer = setTimeout(function() {
-        if (finished) return;
-        finished = true;
-        cleanup();
-        reject(new Error("서버 응답 시간이 초과되었습니다."));
-      }, 20000);
-
-      function cleanup() {
-        clearTimeout(timer);
-        if (script.parentNode) script.parentNode.removeChild(script);
-        try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
-      }
-
-      window[callbackName] = function(result) {
-        if (finished) return;
-        finished = true;
-        cleanup();
-        if (!result) { reject(new Error("서버 응답이 없습니다.")); return; }
-        if (result.ok === false) { reject(new Error(result.error || "서버 오류가 발생했습니다.")); return; }
-        resolve(result);
-      };
-
-      script.onerror = function() {
-        if (finished) return;
-        finished = true;
-        cleanup();
-        reject(new Error("API 서버에 연결할 수 없습니다."));
-      };
-
-      script.src = url;
-      document.head.appendChild(script);
-    });
-  }
-
-  function getApiData(result, fallback) {
-    if (result && result.data !== undefined) return result.data;
-    return fallback;
-  }
-
-  function showLoading(show) {
-    const el = document.getElementById("loading");
-    if (show) el.classList.add("show");
-    else el.classList.remove("show");
-  }
-
-  function showPage(page) {
-    currentPage = page;
-    document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
-    const target = document.getElementById("page-" + page);
-    if (target) target.classList.add("active");
-
-    document.querySelectorAll(".nav-btn").forEach(el => el.classList.remove("active"));
-    const nav = document.getElementById("nav-" + page);
-    if (nav) nav.classList.add("active");
-
-    if (page === "home") loadHome();
-    if (page === "schedule") loadSchedules();
-    if (page === "settlement") loadSettlements();
-    if (page === "memo") loadMemos();
-    if (page === "news") loadNews();
-  }
-
-  function refreshCurrent() {
-    showPage(currentPage);
-  }
-
-  function formatDate(d) {
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  }
-
-  function today() {
-    return formatDate(new Date());
-  }
-
-  function escapeHtml(value) {
-    if (value === null || value === undefined) return "";
-    return String(value)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-  }
-
-  // row 값을 실제 고유 식별자 숫자로 명확하게 반환
-  function getItemId(item) {
-    if (!item) return "";
-    if (item.row !== undefined && item.row !== null) return Number(item.row);
-    if (item.id !== undefined && item.id !== null) return Number(item.id);
-    return "";
-  }
-
-  /* 홈 */
-  async function loadHome() {
-    try {
-      const result = await api("getSchedules");
-      const data = getApiData(result, []);
-      schedules = Array.isArray(data) ? data : (data.schedules || result.schedules || []);
-      renderHomeSchedules();
-    } catch (error) {
-      document.getElementById("homeSchedules").innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
-    }
-  }
-
-  function renderHomeSchedules() {
-    const box = document.getElementById("homeSchedules");
-    if (!schedules.length) {
-      box.innerHTML = '<div class="empty">등록된 일정이 없습니다.</div>';
-      return;
-    }
-    const todayText = today();
-    const list = schedules.filter(item => String(item.date || "") === todayText);
-    if (!list.length) {
-      box.innerHTML = '<div class="empty">오늘 일정이 없습니다.</div>';
-      return;
-    }
-    box.innerHTML = '<div class="list">' + list.map(item => `
-      <div class="item">
-        <div class="item-main">${escapeHtml(item.time || "")}${item.time ? " · " : ""}${escapeHtml(item.title || item.schedule || "")}</div>
-        <div class="item-meta">${escapeHtml(item.date || "")}</div>
-      </div>
-    `).join("") + '</div>';
-  }
-
-  /* 일정 & 필터링 */
-  async function loadSchedules() {
-    const box = document.getElementById("scheduleList");
-    box.innerHTML = '<div class="empty">불러오는 중...</div>';
-    try {
-      const result = await api("getSchedules");
-      const data = getApiData(result, []);
-      schedules = Array.isArray(data) ? data : (data.schedules || result.schedules || []);
-      applyScheduleFilter();
-    } catch (error) {
-      box.innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
-    }
-  }
-
-  function setScheduleFilter(mode) {
-    scheduleFilterMode = mode;
-    document.getElementById("btnScheduleUpcoming").classList.toggle("active", mode === "upcoming");
-    document.getElementById("btnScheduleAll").classList.toggle("active", mode === "all");
-    document.getElementById("btnSchedulePast").classList.toggle("active", mode === "past");
-    applyScheduleFilter();
-  }
-
-  function applyScheduleFilter() {
-    const t = today();
-    let filtered = [...schedules];
-
-    if (scheduleFilterMode === "upcoming") {
-      filtered = filtered.filter(item => String(item.date || "") >= t);
-      filtered.sort((a, b) => (a.date + " " + (a.time || "")).localeCompare(b.date + " " + (b.time || "")));
-    } else if (scheduleFilterMode === "past") {
-      filtered = filtered.filter(item => String(item.date || "") < t);
-      filtered.sort((a, b) => (b.date + " " + (b.time || "")).localeCompare(a.date + " " + (a.time || "")));
-    } else {
-      filtered.sort((a, b) => (b.date + " " + (b.time || "")).localeCompare(a.date + " " + (a.time || "")));
-    }
-
-    renderSchedules(filtered);
-  }
-
-  function renderSchedules(listToRender = schedules) {
-    const box = document.getElementById("scheduleList");
-    const titleEl = document.getElementById("scheduleListTitle");
-
-    const labelMap = {
-      upcoming: "다가올 일정",
-      all: "전체 일정",
-      past: "지난 일정"
-    };
-    if (titleEl) {
-      titleEl.textContent = `${labelMap[scheduleFilterMode]} (${listToRender.length}건)`;
-    }
-
-    if (!listToRender.length) {
-      box.innerHTML = `<div class="empty">${labelMap[scheduleFilterMode]}이 없습니다.</div>`;
-      return;
-    }
-
-    box.innerHTML = listToRender.map(item => {
-      const id = getItemId(item);
-      return `
-        <div class="item">
-          <div class="item-main">📅 ${escapeHtml(item.date || "")}${item.time ? " · " + escapeHtml(item.time) : ""}<br>${escapeHtml(item.title || item.schedule || "")}</div>
-          <div class="item-meta">등록자: ${escapeHtml(item.registrant || item.registeredBy || "")}</div>
-          <div class="item-actions">
-            <button class="small-btn" onclick='openEdit("schedule", ${id})'>수정</button>
-            <button class="small-btn delete" onclick='deleteSchedule(${id})'>삭제</button>
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  async function addSchedule() {
-    const date = document.getElementById("scheduleDate").value;
-    const time = document.getElementById("scheduleTime").value;
-    const title = document.getElementById("scheduleTitle").value.trim();
-    if (!date || !title) { alert("날짜와 일정을 입력해주세요."); return; }
-
-    showLoading(true);
-    try {
-      await api("addSchedule", { date, time, title });
-      document.getElementById("scheduleTitle").value = "";
-      alert("일정이 등록되었습니다.");
-      await loadSchedules();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  async function deleteSchedule(id) {
-    if (!confirm("이 일정을 삭제할까요?")) return;
-    showLoading(true);
-    try {
-      await api("deleteSchedule", { id, row: id });
-      await loadSchedules();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  /* 정산 & 기간 필터링 & 참여 멤버 체크박스 & 결과 메모 저장 */
-  async function loadSettlements() {
-    const box = document.getElementById("settlementList");
-    box.innerHTML = '<div class="empty">불러오는 중...</div>';
-    try {
-      const result = await api("getSettlements");
-      const data = getApiData(result, []);
-      settlements = Array.isArray(data) ? data : (data.settlements || result.settlements || []);
+  <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- 좌측: 캐리어 설정 & 품목 선택기 (7칸) -->
+    <section class="lg:col-span-7 space-y-5">
       
-      if (!document.getElementById("filterStartDate").value && !document.getElementById("filterEndDate").value) {
-        setQuickSettlementRange('all', false);
-      } else {
-        applySettlementDateFilter();
-      }
-      document.getElementById("calcResultBox").style.display = "none";
+      <!-- 1. 캐리어 사이즈 및 옵션 카드 -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h2 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+          <span>1️⃣ 캐리어 규격 및 여유 공간 설정</span>
+        </h2>
+        
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <button onclick="setSuitcaseSize(20)" id="size-btn-20" class="p-3 rounded-xl border-2 text-left transition-all">
+            <div class="font-bold text-sm">20인치 (기내용)</div>
+            <div class="text-xs text-slate-500 mt-0.5">1~3박 · 약 40칸(38L)</div>
+          </button>
+          <button onclick="setSuitcaseSize(24)" id="size-btn-24" class="p-3 rounded-xl border-2 text-left transition-all">
+            <div class="font-bold text-sm">24인치 (화물 표준)</div>
+            <div class="text-xs text-slate-500 mt-0.5">4~6박 · 약 64칸(62L)</div>
+          </button>
+          <button onclick="setSuitcaseSize(28)" id="size-btn-28" class="p-3 rounded-xl border-2 text-left transition-all">
+            <div class="font-bold text-sm">28인치 (화물 대형)</div>
+            <div class="text-xs text-slate-500 mt-0.5">7박+ · 약 100칸(95L)</div>
+          </button>
+        </div>
 
-      await loadChatMembers();
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-sm">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="opt-expand" onchange="updateSimulation()" class="w-4 h-4 accent-blue-600 rounded">
+            <span class="font-medium text-slate-700">🔓 확장 지퍼 열기 <span class="text-xs text-blue-600 font-semibold">(+15% 용량 증가)</span></span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="opt-souvenir" onchange="updateSimulation()" checked class="w-4 h-4 accent-emerald-600 rounded">
+            <span class="font-medium text-slate-700">🛍️ 기념품 여유 공간 20% 비워두기</span>
+          </label>
+        </div>
+      </div>
 
-    } catch (error) {
-      box.innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
-    }
-  }
+      <!-- 2. 품목 리스트 및 세부 옵션 -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-bold text-slate-800">2️⃣ 짐 품목 & 부피 상세 설정</h2>
+          <span class="text-xs text-slate-500">💡 두께·압축팩·출국 착용 여부를 조절해 보세요</span>
+        </div>
 
-  async function loadChatMembers() {
-    const container = document.getElementById("memberCheckboxContainer");
-    try {
-      const res = await api("getChatMembers");
-      chatMembers = (res && res.data) ? res.data : [];
+        <!-- 카테고리 탭 -->
+        <div class="flex gap-1.5 overflow-x-auto pb-2 mb-4 border-b border-slate-100" id="category-tabs"></div>
 
-      settlements.forEach(item => {
-        const payer = (item.registrant || item.registeredBy || item.user || "").trim();
-        if (payer && !chatMembers.includes(payer)) {
-          chatMembers.push(payer);
-        }
-      });
+        <!-- 품목 리스트 컨테이너 -->
+        <div id="items-container" class="space-y-2.5 max-h-[540px] overflow-y-auto pr-1"></div>
+      </div>
+    </section>
 
-      renderMemberCheckboxes();
-    } catch (e) {
-      container.innerHTML = '<span style="font-size:12px; color:#f87171;">멤버 목록 로드 실패 (수동 추가 가능)</span>';
-    }
-  }
+    <!-- 우측: 캐리어 이너백 자동 배치 시뮬레이터 (5칸) -->
+    <section class="lg:col-span-5 space-y-5">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 sticky top-20">
+        
+        <!-- 용량 게이지 헤더 -->
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h2 class="text-sm font-bold text-slate-800" id="sim-title">24인치 캐리어 수납 시뮬레이션</h2>
+            <p class="text-xs text-slate-500" id="sim-subtitle">품목을 담으면 이너백으로 자동 압축·분할 배치됩니다</p>
+          </div>
+          <div class="text-right">
+            <span class="text-lg font-extrabold text-blue-600" id="vol-used">0</span>
+            <span class="text-xs text-slate-500">/ <span id="vol-max">64</span>칸 (<span id="vol-percent">0%</span>)</span>
+          </div>
+        </div>
 
-  function renderMemberCheckboxes() {
-    const container = document.getElementById("memberCheckboxContainer");
-    if (!chatMembers.length) {
-      container.innerHTML = '<span style="font-size:12px; color:#94a3b8;">등록된 멤버가 없습니다. [+ 직접 추가]를 눌러주세요.</span>';
-      return;
-    }
+        <!-- 프로그레스 바 -->
+        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex mb-3 border border-slate-200">
+          <div id="bar-used" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
+          <div id="bar-souvenir" class="bg-emerald-300/70 h-full transition-all duration-300" style="width: 20%"></div>
+        </div>
 
-    container.innerHTML = chatMembers.map(name => `
-      <label class="member-chip">
-        <input type="checkbox" class="calc-member-check" value="${escapeHtml(name)}" checked>
-        <span>${escapeHtml(name)}</span>
-      </label>
-    `).join("");
-  }
+        <!-- 상태 알림 배지 -->
+        <div id="status-alert" class="text-xs px-3 py-2 rounded-lg mb-4 font-medium bg-slate-50 text-slate-600 border border-slate-200">
+          짐을 선택하면 최적의 이너백 조합과 캐리어 위치가 계산됩니다.
+        </div>
 
-  function promptAddCustomMember() {
-    const name = prompt("추가할 멤버 이름을 입력하세요:");
-    if (name && name.trim()) {
-      const cleanName = name.trim();
-      if (!chatMembers.includes(cleanName)) {
-        chatMembers.push(cleanName);
-        renderMemberCheckboxes();
-      }
-    }
-  }
+        <!-- 기내 휴대용 가방 (위탁 불가 / 필수 휴대품) -->
+        <div class="mb-4 p-3 rounded-xl bg-amber-50/80 border border-amber-200">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-amber-900 flex items-center gap-1">🎒 기내 휴대 보조가방 (캐리어 위탁 금지/필수 휴대)</span>
+            <span class="text-[11px] text-amber-700 font-medium" id="carryon-count">0개 품목</span>
+          </div>
+          <div id="carryon-zone" class="flex flex-wrap gap-1.5 min-h-[28px] items-center">
+            <span class="text-xs text-amber-600/70">여권, 보조배터리, 노트북 등은 이곳에 자동 분리됩니다.</span>
+          </div>
+        </div>
 
-  function setQuickSettlementRange(rangeType, triggerFilter = true) {
-    const now = new Date();
-    const end = formatDate(now);
-    let start = "";
+        <!-- 착용 중(입고 갈 옷) 표시줄 -->
+        <div id="worn-banner" class="hidden mb-4 p-2.5 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-between text-xs">
+          <span class="font-bold text-purple-900">🏃 출국 시 직접 착용 (캐리어 부피 0 처리)</span>
+          <span id="worn-list" class="text-purple-700 font-medium truncate max-w-[220px]"></span>
+        </div>
 
-    if (rangeType === '7d') {
-      const d = new Date();
-      d.setDate(d.getDate() - 7);
-      start = formatDate(d);
-    } else if (rangeType === '1m') {
-      const d = new Date();
-      d.setMonth(d.getMonth() - 1);
-      start = formatDate(d);
-    } else if (rangeType === 'thisMonth') {
-      start = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-01";
-    } else if (rangeType === 'all') {
-      start = "";
-    }
+        <!-- 오픈형 캐리어 그래픽 (좌측 덮개면 / 우측 바퀴 몸통면) -->
+        <div class="relative pt-3 pb-4">
+          <!-- 상단 손잡이 표시 -->
+          <div class="flex justify-around text-[11px] font-bold text-slate-400 mb-1">
+            <span>◀ 좌측: 지퍼 메쉬 덮개면 (가벼운/납작한 짐)</span>
+            <span>우측: 바퀴 달린 몸통면 (무거운/부피 큰 짐) ▶</span>
+          </div>
 
-    document.getElementById("filterStartDate").value = start;
-    document.getElementById("filterEndDate").value = rangeType === 'all' ? "" : end;
+          <div class="flex items-stretch gap-1.5">
+            <!-- 좌측 캐리어 면 -->
+            <div class="suitcase-shell flex-1 p-2.5 flex flex-col justify-between min-h-[360px]">
+              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center border-b border-slate-300/80 pb-1 mb-1.5">
+                상단 (꺼내기 쉬운 메쉬 포켓)
+              </div>
+              
+              <!-- 좌측 이너백 슬롯 -->
+              <div id="left-compartment" class="flex-1 flex flex-col gap-1.5 justify-start"></div>
 
-    // 정산 탭 내부의 버튼만 토글하도록 범위 제한 (일정 탭 스타일 오작동 방지)
-    document.querySelectorAll("#page-settlement .filter-btn-group .filter-tag-btn").forEach(btn => {
-      btn.classList.toggle("active", btn.textContent.includes(
-        rangeType === '7d' ? '7일' : (rangeType === '1m' ? '1개월' : (rangeType === 'thisMonth' ? '이번 달' : '전체'))
-      ));
-    });
+              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center border-t border-slate-300/80 pt-1 mt-1.5">
+                하단 (납작한 의류·언더웨어)
+              </div>
+            </div>
 
-    if (triggerFilter) {
-      applySettlementDateFilter();
-    }
-  }
+            <!-- 중앙 힌지(경첩) -->
+            <div class="suitcase-hinge my-4"></div>
 
-  function applySettlementDateFilter() {
-    const sDate = document.getElementById("filterStartDate").value;
-    const eDate = document.getElementById("filterEndDate").value;
+            <!-- 우측 캐리어 면 -->
+            <div class="suitcase-shell flex-1 p-2.5 flex flex-col justify-between min-h-[360px]">
+              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center border-b border-slate-300/80 pb-1 mb-1.5">
+                ⬆️ 상단 손잡이 쪽 (가벼운 의류 큐브)
+              </div>
 
-    let filtered = settlements;
-    if (sDate) {
-      filtered = filtered.filter(item => String(item.date || "") >= sDate);
-    }
-    if (eDate) {
-      filtered = filtered.filter(item => String(item.date || "") <= eDate);
-    }
+              <!-- 우측 상단/중단/하단 슬롯 -->
+              <div id="right-compartment" class="flex-1 flex flex-col gap-1.5 justify-end"></div>
 
-    renderSettlements(filtered);
-  }
-
-  function renderSettlements(listToRender = settlements) {
-    const box = document.getElementById("settlementList");
-    const countTitle = document.getElementById("settlementListTitle");
-    if (countTitle) {
-      countTitle.textContent = `지출 내역 목록 (${listToRender.length}건)`;
-    }
-
-    if (!listToRender.length) {
-      box.innerHTML = '<div class="empty">설정한 기간에 해당하는 지출 내역이 없습니다.</div>';
-      return;
-    }
-
-    box.innerHTML = listToRender.map(item => {
-      const id = getItemId(item);
-      const amount = Number(item.amount || 0);
-      const amountText = Number.isFinite(amount) ? amount.toLocaleString("ko-KR") + "원" : escapeHtml(item.amount || "");
-      const payer = escapeHtml(item.registrant || item.registeredBy || item.user || "미지정");
-
-      return `
-        <div class="item">
-          <div class="settlement-card-header">
-            <input type="checkbox" class="settlement-checkbox" value="${escapeHtml(id)}" checked>
-            <div style="flex:1;">
-              <div class="item-main">💰 ${escapeHtml(item.content || "")}</div>
-              <div class="item-meta">
-                ${escapeHtml(item.date || "")} · <b>${amountText}</b>
-                ${item.note ? "<br>비고: " + escapeHtml(item.note) : ""}
-                <br><b>결제자(등록자):</b> ${payer}
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center border-t border-slate-300/80 pt-1 mt-1.5">
+                ⬇️ 하단 바퀴 쪽 (신발·액체·무거운 짐)
               </div>
             </div>
           </div>
-          <div class="item-actions" style="margin-left:30px;">
-            <button class="small-btn" onclick='openEdit("settlement", ${id})'>수정</button>
-            <button class="small-btn delete" onclick='deleteSettlement(${id})'>삭제</button>
+
+          <!-- 하단 바퀴 그래픽 -->
+          <div class="flex justify-around px-8 -mt-1">
+            <div class="flex gap-16"><div class="wheel"></div><div class="wheel"></div></div>
+            <div class="flex gap-16"><div class="wheel"></div><div class="wheel"></div></div>
           </div>
         </div>
-      `;
-    }).join("");
-  }
 
-  function toggleSelectAllSettlements() {
-    const checkboxes = document.querySelectorAll(".settlement-checkbox");
-    if (!checkboxes.length) return;
-    const hasUnchecked = Array.from(checkboxes).some(cb => !cb.checked);
-    checkboxes.forEach(cb => cb.checked = hasUnchecked);
-  }
+        <!-- 선택된 이너백 상세 가이드 박스 -->
+        <div id="guide-box" class="mt-2 p-3.5 rounded-xl bg-slate-800 text-white text-xs space-y-1">
+          <div class="font-bold text-amber-300 flex items-center gap-1.5" id="guide-title">
+            <span>💡 패킹 가이드 (이너백 블록을 클릭해보세요)</span>
+          </div>
+          <p class="text-slate-200 leading-relaxed" id="guide-desc">
+            우측 캐리어에 배치된 각 이너백(파우치)을 클릭하면 안에 들어간 세부 품목과 무게중심 수납 팁을 확인할 수 있습니다.
+          </p>
+        </div>
 
-  async function runSettlementCalc() {
-    const itemCbs = document.querySelectorAll(".settlement-checkbox:checked");
-    const selectedIds = Array.from(itemCbs).map(cb => cb.value).join(",");
+      </div>
+    </section>
 
-    const memberCbs = document.querySelectorAll(".calc-member-check:checked");
-    const selectedMembers = Array.from(memberCbs).map(cb => cb.value).join(",");
+  </main>
 
-    if (!selectedIds) {
-      alert("정산에 포함할 지출 항목을 1개 이상 체크해주세요.");
-      return;
+  <script>
+    // 1. 캐리어 사이즈 규격 데이터
+    const SUITCASE_SPECS = {
+      20: { name: '20인치 기내용', baseCap: 40, liters: 38 },
+      24: { name: '24인치 화물 표준', baseCap: 64, liters: 62 },
+      28: { name: '28인치 화물 대형', baseCap: 100, liters: 95 }
+    };
+
+    let currentSize = 24;
+    let currentCategory = 'all';
+
+    // 2. 전체 품목 마스터 데이터
+    // group: 'clothes' | 'underwear' | 'outer' | 'shoes' | 'wash' | 'tech' | 'fragile' | 'flat_misc' | 'carryon'
+    const ITEMS_DATA = [
+      // 상의/하의 (의류 큐브 그룹)
+      { id: 'tshirt', name: '티셔츠 / 반팔', cat: '의류', group: 'clothes', baseVol: 1.0, qty: 3, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'shirt', name: '셔츠 / 블라우스', cat: '의류', group: 'clothes', baseVol: 1.3, qty: 1, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'knit', name: '니트 / 맨투맨 / 후드', cat: '의류', group: 'clothes', baseVol: 2.5, qty: 1, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: true, worn: false, heavy: false },
+      { id: 'shorts', name: '반바지 / 치마', cat: '의류', group: 'clothes', baseVol: 1.0, qty: 1, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'slacks', name: '슬랙스 / 면바지', cat: '의류', group: 'clothes', baseVol: 2.0, qty: 1, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: true, worn: false, heavy: false },
+      { id: 'jeans', name: '청바지 (데님)', cat: '의류', group: 'clothes', baseVol: 2.6, qty: 1, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: true, worn: false, heavy: true },
+      { id: 'pajama', name: '잠옷 / 홈웨어 세트', cat: '의류', group: 'clothes', baseVol: 1.5, qty: 1, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: false, worn: false, heavy: false },
+
+      // 아우터
+      { id: 'cardigan', name: '가디건 / 바람막이', cat: '아우터', group: 'outer', baseVol: 2.0, qty: 1, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: true, worn: false, heavy: false },
+      { id: 'coat', name: '자켓 / 코트', cat: '아우터', group: 'outer', baseVol: 4.5, qty: 0, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: true, worn: false, heavy: true },
+      { id: 'padding', name: '패딩 (경량~헤비)', cat: '아우터', group: 'outer', baseVol: 5.5, qty: 0, thick: 1.0, hasThick: true, canCompress: true, compressed: false, canWear: true, worn: false, heavy: false },
+
+      // 언더웨어/잡화
+      { id: 'underwear', name: '속옷 세트', cat: '속옷/잡화', group: 'underwear', baseVol: 0.5, qty: 4, thick: 1.0, hasThick: false, canCompress: true, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'socks', name: '양말', cat: '속옷/잡화', group: 'underwear', baseVol: 0.3, qty: 4, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'swimwear', name: '수영복 / 비치웨어', cat: '속옷/잡화', group: 'underwear', baseVol: 1.2, qty: 0, thick: 1.0, hasThick: false, canCompress: true, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'acc', name: '모자 / 선글라스 / 벨트', cat: '속옷/잡화', group: 'flat_misc', baseVol: 1.2, qty: 1, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: true, worn: false, heavy: false },
+
+      // 신발
+      { id: 'slippers', name: '슬리퍼 / 샌들', cat: '신발', group: 'shoes', baseVol: 2.2, qty: 1, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'sneakers', name: '여분 운동화 / 구두', cat: '신발', group: 'shoes', baseVol: 4.8, qty: 0, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: true, worn: false, heavy: true },
+
+      // 세면/화장품
+      { id: 'wash_basic', name: '기본 세면도구 세트', cat: '세면/뷰티', group: 'wash', baseVol: 2.5, qty: 1, thick: 1.0, hasThick: true, canCompress: false, compressed: false, canWear: false, worn: false, heavy: true },
+      { id: 'cosmetics', name: '기초화장품 / 메이크업팩', cat: '세면/뷰티', group: 'wash', baseVol: 2.5, qty: 1, thick: 1.0, hasThick: true, canCompress: false, compressed: false, canWear: false, worn: false, heavy: true },
+      { id: 'hair_tool', name: '고데기 / 미니 드라이기', cat: '세면/뷰티', group: 'fragile', baseVol: 2.8, qty: 0, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: false },
+
+      // 전자기기 & 필수품
+      { id: 'charger', name: '충전기 / 케이블 / 어댑터', cat: '전자/필수', group: 'tech', baseVol: 2.0, qty: 1, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: true },
+      { id: 'camera', name: '카메라 & 렌즈 보호팩', cat: '전자/필수', group: 'fragile', baseVol: 3.5, qty: 0, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'medicine', name: '상비약 파우치', cat: '전자/필수', group: 'flat_misc', baseVol: 1.5, qty: 1, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'umbrella', name: '접이식 우산 / 양산', cat: '전자/필수', group: 'flat_misc', baseVol: 1.5, qty: 1, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: false },
+      
+      // 기내 반입 필수 (캐리어 부피 미포함, 별도 영역 표시)
+      { id: 'powerbank', name: '보조배터리 (위탁금지)', cat: '전자/필수', group: 'carryon', baseVol: 0, qty: 1, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'laptop', name: '노트북 / 태블릿 (위탁금지)', cat: '전자/필수', group: 'carryon', baseVol: 0, qty: 0, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: false },
+      { id: 'passport', name: '여권 / 지갑 / 항공권', cat: '전자/필수', group: 'carryon', baseVol: 0, qty: 1, thick: 1.0, hasThick: false, canCompress: false, compressed: false, canWear: false, worn: false, heavy: false }
+    ];
+
+    const CATEGORIES = ['all', '의류', '아우터', '속옷/잡화', '신발', '세면/뷰티', '전자/필수'];
+
+    // 개별 품목의 실제 캐리어 점유 부피 계산
+    function calcItemVol(item) {
+      if (item.qty <= 0 || item.worn || item.group === 'carryon') return 0;
+      const compressFactor = item.compressed ? 0.6 : 1.0;
+      return +(item.baseVol * item.thick * item.qty * compressFactor).toFixed(1);
     }
-    if (!selectedMembers) {
-      alert("N빵에 참여할 멤버를 1명 이상 체크해주세요.");
-      return;
+
+    // 카테고리 탭 렌더링
+    function renderCategoryTabs() {
+      const container = document.getElementById('category-tabs');
+      container.innerHTML = CATEGORIES.map(cat => {
+        const active = currentCategory === cat;
+        const label = cat === 'all' ? '전체 품목' : cat;
+        return `<button onclick="setCategory('${cat}')" class="px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+          active ? 'bg-slate-800 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+        }">${label}</button>`;
+      }).join('');
     }
 
-    const selectedIdList = selectedIds.split(",").map(Number);
-    lastIncludedItems = settlements.filter(item => selectedIdList.includes(getItemId(item)));
+    function setCategory(cat) {
+      currentCategory = cat;
+      renderCategoryTabs();
+      renderItemsList();
+    }
 
-    showLoading(true);
-    try {
-      const res = await api("calculateSettlement", {
-        selectedIds: selectedIds,
-        participants: selectedMembers
+    // 좌측 품목 컨트롤 리스트 렌더링
+    function renderItemsList() {
+      const container = document.getElementById('items-container');
+      const filtered = currentCategory === 'all' 
+        ? ITEMS_DATA 
+        : ITEMS_DATA.filter(i => i.cat === currentCategory);
+
+      container.innerHTML = filtered.map(item => {
+        const vol = calcItemVol(item);
+        const isSelected = item.qty > 0;
+        const thickLabel = item.cat === '세면/뷰티' 
+          ? [{v:0.7, l:'소형/샘플'}, {v:1.0, l:'일반'}, {v:1.6, l:'대용량/본품'}]
+          : [{v:0.7, l:'얇음(여름)'}, {v:1.0, l:'보통(봄가을)'}, {v:1.8, l:'두꺼움(겨울)'}];
+
+        return `
+        <div class="p-3 rounded-xl border transition-all ${isSelected ? 'bg-white border-slate-300 shadow-sm' : 'bg-slate-50/60 border-slate-200/70 opacity-75'}">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            
+            <!-- 품목명 & 카테고리 배지 -->
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-600">${item.cat}</span>
+              <span class="font-bold text-sm text-slate-800">${item.name}</span>
+              ${item.group === 'carryon' ? '<span class="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded font-semibold">기내휴대</span>' : ''}
+            </div>
+
+            <!-- 수량 조절 & 계산된 부피 -->
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-semibold ${vol > 0 ? 'text-blue-600' : 'text-slate-400'}">
+                ${item.group === 'carryon' ? '캐리어 외' : item.worn && item.qty > 0 ? '착용(0칸)' : `${vol}칸`}
+              </span>
+              <div class="flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white">
+                <button onclick="changeQty('${item.id}', -1)" class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold">-</button>
+                <span class="w-8 text-center text-xs font-bold">${item.qty}</span>
+                <button onclick="changeQty('${item.id}', 1)" class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 세부 옵션 (수량이 1 이상일 때만 노출) -->
+          ${isSelected && (item.hasThick || item.canCompress || item.canWear) ? `
+          <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <!-- 두께/용량 선택 -->
+            ${item.hasThick ? `
+              <div class="flex items-center gap-1">
+                <span class="text-slate-400 mr-1">부피감:</span>
+                ${thickLabel.map(t => `
+                  <button onclick="setThick('${item.id}', ${t.v})" class="px-2 py-0.5 rounded border text-[11px] font-medium ${
+                    item.thick === t.v ? 'bg-blue-50 border-blue-400 text-blue-700 font-bold' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                  }">${t.l}</button>
+                `).join('')}
+              </div>
+            ` : '<div></div>'}
+
+            <!-- 압축팩 & 출국 착용 토글 -->
+            <div class="flex items-center gap-3">
+              ${item.canCompress ? `
+                <label class="flex items-center gap-1 cursor-pointer select-none text-sky-700 font-medium">
+                  <input type="checkbox" ${item.compressed ? 'checked' : ''} onchange="toggleCompress('${item.id}')" class="accent-sky-600 rounded">
+                  <span>⚡압축팩(-40%)</span>
+                </label>
+              ` : ''}
+              ${item.canWear ? `
+                <label class="flex items-center gap-1 cursor-pointer select-none text-purple-700 font-medium">
+                  <input type="checkbox" ${item.worn ? 'checked' : ''} onchange="toggleWear('${item.id}')" class="accent-purple-600 rounded">
+                  <span>🏃출국착용</span>
+                </label>
+              ` : ''}
+            </div>
+          </div>
+          ` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    // 상태 변경 핸들러들
+    function setSuitcaseSize(size) {
+      currentSize = size;
+      [20, 24, 28].forEach(s => {
+        const btn = document.getElementById(`size-btn-${s}`);
+        if (s === size) {
+          btn.className = 'p-3 rounded-xl border-2 border-blue-600 bg-blue-50/40 text-left transition-all shadow-sm';
+        } else {
+          btn.className = 'p-3 rounded-xl border-2 border-slate-200 bg-white hover:border-slate-300 text-left transition-all';
+        }
+      });
+      updateSimulation();
+    }
+
+    function changeQty(id, delta) {
+      const item = ITEMS_DATA.find(i => i.id === id);
+      if (!item) return;
+      item.qty = Math.max(0, item.qty + delta);
+      renderItemsList();
+      updateSimulation();
+    }
+
+    function setThick(id, val) {
+      const item = ITEMS_DATA.find(i => i.id === id);
+      if (!item) return;
+      item.thick = val;
+      renderItemsList();
+      updateSimulation();
+    }
+
+    function toggleCompress(id) {
+      const item = ITEMS_DATA.find(i => i.id === id);
+      if (!item) return;
+      item.compressed = !item.compressed;
+      renderItemsList();
+      updateSimulation();
+    }
+
+    function toggleWear(id) {
+      const item = ITEMS_DATA.find(i => i.id === id);
+      if (!item) return;
+      item.worn = !item.worn;
+      renderItemsList();
+      updateSimulation();
+    }
+
+    // 3. 핵심: 이너백(패킹 큐브) 자동 그룹핑 및 캐리어 배치 알고리즘
+    function buildInnerBags() {
+      const activeItems = ITEMS_DATA.filter(i => i.qty > 0 && !i.worn && i.group !== 'carryon');
+      const pouches = [];
+
+      // ① 의류 큐브 분할 생성 (14칸 단위로 L, M, S 큐브 자동 분할)
+      const clothesItems = activeItems.filter(i => i.group === 'clothes' || i.group === 'outer');
+      if (clothesItems.length > 0) {
+        let totalClothesVol = clothesItems.reduce((acc, i) => acc + calcItemVol(i), 0);
+        const hasHeavyJeansOrCoat = clothesItems.some(i => i.heavy);
+        const isCompressed = clothesItems.some(i => i.compressed);
+        const itemNames = clothesItems.map(i => `${i.name}(${i.qty})`).join(', ');
+
+        let cubeIdx = 1;
+        while (totalClothesVol > 0.1) {
+          const chunk = Math.min(totalClothesVol, 14);
+          const sizeTag = chunk >= 10 ? 'L' : chunk >= 5 ? 'M' : 'S';
+          const isFirstHeavy = cubeIdx === 1 && hasHeavyJeansOrCoat;
+
+          pouches.push({
+            id: `clothes-${cubeIdx}`,
+            title: `${isCompressed ? '⚡압축 ' : ''}의류 패킹큐브 #${cubeIdx} (${sizeTag})`,
+            vol: +chunk.toFixed(1),
+            color: isCompressed ? 'bg-sky-100 border-sky-400 text-sky-900' : 'bg-blue-100 border-blue-400 text-blue-900',
+            badge: `${chunk.toFixed(1)}칸`,
+            side: isFirstHeavy ? 'right' : (cubeIdx % 2 === 1 ? 'right' : 'left'),
+            priority: isFirstHeavy ? 2 : 4, // 낮을수록 우측 하단(바퀴 쪽) 배치
+            itemsDesc: itemNames,
+            tip: isFirstHeavy 
+              ? '청바지·코트 등 묵직한 의류가 포함되어 있어 캐리어 우측 중하단(바퀴 근처)에 배치해 무게중심을 잡았습니다.'
+              : '티셔츠와 일반 의류를 돌돌 말아 패킹 큐브에 넣으면 주름이 줄고 캐리어 상단/좌측에 깔끔하게 수납됩니다.'
+          });
+          totalClothesVol -= chunk;
+          cubeIdx++;
+        }
+      }
+
+      // ② 언더웨어 & 양말 파우치 (좌측 지퍼 메쉬 포켓 우선)
+      const underItems = activeItems.filter(i => i.group === 'underwear');
+      if (underItems.length > 0) {
+        const vol = underItems.reduce((a, i) => a + calcItemVol(i), 0);
+        pouches.push({
+          id: 'underwear-pouch',
+          title: '🧦 언더웨어·양말 파우치',
+          vol: +vol.toFixed(1),
+          color: 'bg-indigo-100 border-indigo-300 text-indigo-900',
+          badge: `${vol.toFixed(1)}칸`,
+          side: 'left',
+          priority: 2,
+          itemsDesc: underItems.map(i => `${i.name}(${i.qty})`).join(', '),
+          tip: '부피가 작고 납작한 속옷과 양말은 좌측 지퍼 메쉬 덮개면에 넣으면 공간을 알차게 쓸 수 있습니다.'
+        });
+      }
+
+      // ③ 슈즈백 (신발 - 우측 최하단 바퀴 쪽 고정)
+      const shoeItems = activeItems.filter(i => i.group === 'shoes');
+      shoeItems.forEach((shoe, idx) => {
+        const vol = calcItemVol(shoe);
+        pouches.push({
+          id: `shoe-${idx}`,
+          title: `👟 슈즈백: ${shoe.name}`,
+          vol: +vol.toFixed(1),
+          color: 'bg-stone-200 border-stone-400 text-stone-900',
+          badge: `${vol.toFixed(1)}칸`,
+          side: 'right',
+          priority: 1, // 최하단 바퀴 쪽
+          itemsDesc: `${shoe.name} ${shoe.qty}켤레 (안쪽에 양말을 채워 넣으면 형태 유지에 좋습니다)`,
+          tip: '신발은 형태가 단단하고 무게가 나가므로 반드시 우측 하단 바퀴 바로 위쪽에 배치해야 캐리어가 넘어지지 않습니다.'
+        });
       });
 
-      lastSettlementResult = res;
-
-      const box = document.getElementById("calcResultBox");
-      box.style.display = "block";
-
-      let html = `<div style="font-size:13px; line-height:1.6; margin-bottom:10px;">
-        선택 지출 총액: <b style="color:#38bdf8;">${Number(res.totalAmount).toLocaleString()}원</b><br>
-        참여 인원: <b>${res.memberCount}명</b> (1인당 <b style="color:#fde047;">${Number(res.perPerson).toLocaleString()}원</b>)
-      </div>`;
-
-      if (res.transfers && res.transfers.length > 0) {
-        html += '<div style="font-weight:700; color:#38bdf8; margin-bottom:6px; font-size:13px;">👉 송금 안내:</div>';
-        html += '<ul style="margin:0; padding-left:18px; font-size:13px;">';
-        res.transfers.forEach(t => {
-          html += `<li style="margin-bottom:4px;">
-            <b>${escapeHtml(t.from)}</b> ➡️ <b>${escapeHtml(t.to)}</b>:
-            <span style="color:#fde047; font-weight:800;">${Number(t.amount).toLocaleString()}원</span>
-          </li>`;
+      // ④ 워시백 (세면도구/액체류 - 우측 하단 바퀴 쪽)
+      const washItems = activeItems.filter(i => i.group === 'wash');
+      if (washItems.length > 0) {
+        const vol = washItems.reduce((a, i) => a + calcItemVol(i), 0);
+        const warning20 = currentSize === 20 ? ' ⚠️기내용 100ml 이하 지퍼백 규정 확인!' : '';
+        pouches.push({
+          id: 'wash-bag',
+          title: '🧴 방수 워시백 (세면·화장품)',
+          vol: +vol.toFixed(1),
+          color: 'bg-teal-100 border-teal-400 text-teal-900',
+          badge: `${vol.toFixed(1)}칸`,
+          side: 'right',
+          priority: 1,
+          itemsDesc: washItems.map(i => `${i.name}(${i.qty})`).join(', ') + warning20,
+          tip: '액체류는 무게가 무겁고 누수 위험이 있어 방수 파우치에 담아 우측 하단(바퀴 쪽)에 두는 것이 가장 안전합니다.'
         });
-        html += '</ul>';
+      }
+
+      // ⑤ 테크 파우치 (충전기/어댑터 - 우측 중단/하단)
+      const techItems = activeItems.filter(i => i.group === 'tech');
+      if (techItems.length > 0) {
+        const vol = techItems.reduce((a, i) => a + calcItemVol(i), 0);
+        pouches.push({
+          id: 'tech-pouch',
+          title: '🔌 하드 테크 파우치',
+          vol: +vol.toFixed(1),
+          color: 'bg-slate-200 border-slate-400 text-slate-900',
+          badge: `${vol.toFixed(1)}칸`,
+          side: 'right',
+          priority: 2,
+          itemsDesc: techItems.map(i => `${i.name}(${i.qty})`).join(', '),
+          tip: '어댑터와 충전기는 묵직하고 모서리가 딱딱하므로 하드 파우치에 묶어 바퀴 쪽 하단 빈틈에 끼워 넣으세요.'
+        });
+      }
+
+      // ⑥ 파손 주의 보호팩 (카메라/고데기 - 의류 큐브 사이 중앙 매립)
+      const fragileItems = activeItems.filter(i => i.group === 'fragile');
+      if (fragileItems.length > 0) {
+        const vol = fragileItems.reduce((a, i) => a + calcItemVol(i), 0);
+        pouches.push({
+          id: 'fragile-pack',
+          title: '🛡️ 완충 보호팩 (파손주의)',
+          vol: +vol.toFixed(1),
+          color: 'bg-rose-100 border-rose-400 text-rose-900',
+          badge: `${vol.toFixed(1)}칸`,
+          side: 'right',
+          priority: 3, // 의류 큐브(4)와 하단 무거운 짐(1~2) 사이 정중앙 배치
+          itemsDesc: fragileItems.map(i => `${i.name}(${i.qty})`).join(', '),
+          tip: '외부 충격을 막기 위해 캐리어 벽면에 닿지 않도록 푹신한 의류 패킹큐브 한가운데에 샌드위치처럼 매립하세요.'
+        });
+      }
+
+      // ⑦ 상비약·우산·잡화 (좌측 상단 메쉬 포켓)
+      const miscItems = activeItems.filter(i => i.group === 'flat_misc');
+      if (miscItems.length > 0) {
+        const vol = miscItems.reduce((a, i) => a + calcItemVol(i), 0);
+        pouches.push({
+          id: 'misc-pouch',
+          title: '☂️ 상비약·우산·잡화 포켓',
+          vol: +vol.toFixed(1),
+          color: 'bg-amber-100 border-amber-300 text-amber-900',
+          badge: `${vol.toFixed(1)}칸`,
+          side: 'left',
+          priority: 1,
+          itemsDesc: miscItems.map(i => `${i.name}(${i.qty})`).join(', '),
+          tip: '도착 직후 갑자기 필요할 수 있는 우산, 상비약, 선글라스는 캐리어를 열자마자 보이는 좌측 메쉬 포켓 상단에 넣으세요.'
+        });
+      }
+
+      return pouches;
+    }
+
+    // 4. 시뮬레이션 업데이트 및 화면 렌더링
+    function updateSimulation() {
+      const spec = SUITCASE_SPECS[currentSize];
+      const isExpanded = document.getElementById('opt-expand').checked;
+      const keepSouvenir = document.getElementById('opt-souvenir').checked;
+
+      const maxCap = Math.round(spec.baseCap * (isExpanded ? 1.15 : 1.0));
+      const souvenirCap = keepSouvenir ? Math.round(maxCap * 0.2) : 0;
+      const usableCap = maxCap - souvenirCap;
+
+      // 이너백 생성 및 총 부피 합산
+      const pouches = buildInnerBags();
+      const totalUsed = +(pouches.reduce((sum, p) => sum + p.vol, 0)).toFixed(1);
+      const usedPercent = Math.round((totalUsed / maxCap) * 100);
+      const souvenirPercent = keepSouvenir ? 20 : 0;
+
+      // 텍스트 & 게이지 업데이트
+      document.getElementById('sim-title').textContent = `${spec.name}${isExpanded ? ' (확장됨)' : ''} 수납 시뮬레이션`;
+      document.getElementById('vol-used').textContent = totalUsed;
+      document.getElementById('vol-max').textContent = maxCap;
+      document.getElementById('vol-percent').textContent = `${usedPercent}%`;
+
+      const barUsed = document.getElementById('bar-used');
+      const barSouvenir = document.getElementById('bar-souvenir');
+      barUsed.style.width = `${Math.min(100, usedPercent)}%`;
+      barSouvenir.style.width = `${Math.max(0, Math.min(100 - usedPercent, souvenirPercent))}%`;
+
+      // 상태 경고 메시지 처리
+      const alertBox = document.getElementById('status-alert');
+      if (totalUsed > maxCap) {
+        barUsed.className = 'bg-red-600 h-full transition-all duration-300';
+        alertBox.className = 'text-xs px-3 py-2 rounded-lg mb-4 font-bold bg-red-50 text-red-700 border border-red-200';
+        alertBox.textContent = `🚨 용량 초과! (${(totalUsed - maxCap).toFixed(1)}칸 초과) 압축팩을 켜거나 출국 착용으로 전환, 또는 한 단계 큰 캐리어를 선택하세요.`;
+      } else if (totalUsed > usableCap && keepSouvenir) {
+        barUsed.className = 'bg-amber-500 h-full transition-all duration-300';
+        alertBox.className = 'text-xs px-3 py-2 rounded-lg mb-4 font-semibold bg-amber-50 text-amber-800 border border-amber-200';
+        alertBox.textContent = `⚠️ 기념품 여유 공간(20%)을 침범했습니다! 귀국 시 쇼핑을 계획 중이라면 옷에 압축팩을 적용해 보세요.`;
       } else {
-        html += '<div style="color:#a7f3d0; font-size:13px;">✨ 이미 균등하게 정산되었거나 송금할 내역이 없습니다.</div>';
+        barUsed.className = 'bg-blue-600 h-full transition-all duration-300';
+        alertBox.className = 'text-xs px-3 py-2 rounded-lg mb-4 font-medium bg-emerald-50 text-emerald-800 border border-emerald-200';
+        alertBox.textContent = `✅ 쾌적한 수납 상태입니다! 남은 여유 공간: ${(usableCap - totalUsed).toFixed(1)}칸 ${keepSouvenir ? `(기념품 공간 ${souvenirCap}칸 별도 확보됨)` : ''}`;
       }
 
-      if (res.participants && res.participants.length > 0) {
-        html += '<div style="margin-top:10px; padding-top:8px; border-top:1px solid #334155; font-size:11px; opacity:0.8;">';
-        html += '개별 결제액: ' + res.participants.map(p => `${escapeHtml(p.name)}(${Number(p.paid).toLocaleString()}원)`).join(', ');
-        html += '</div>';
+      // 기내 휴대품 영역 업데이트
+      const carryonItems = ITEMS_DATA.filter(i => i.group === 'carryon' && i.qty > 0);
+      document.getElementById('carryon-count').textContent = `${carryonItems.length}개 품목`;
+      const carryonZone = document.getElementById('carryon-zone');
+      if (carryonItems.length === 0) {
+        carryonZone.innerHTML = `<span class="text-xs text-amber-600/70">선택된 기내 휴대 필수품이 없습니다.</span>`;
+      } else {
+        carryonZone.innerHTML = carryonItems.map(i => `
+          <span class="px-2 py-1 text-xs font-bold bg-white text-amber-900 border border-amber-300 rounded-lg shadow-sm">
+            ${i.name} ×${i.qty}
+          </span>
+        `).join('');
       }
 
-      if (lastIncludedItems.length > 0) {
-        html += '<div style="margin-top:12px; padding-top:10px; border-top:1px solid #334155;">';
-        html += `<div style="font-weight:700; color:#cbd5e1; font-size:12px; margin-bottom:6px;">📋 포함된 결제 내역 (${lastIncludedItems.length}건):</div>`;
-        html += '<ul style="margin:0; padding-left:18px; font-size:12px; color:#94a3b8; line-height:1.5;">';
-        lastIncludedItems.forEach(item => {
-          const amt = Number(item.amount || 0).toLocaleString();
-          const payer = item.registrant || item.registeredBy || item.user || "미지정";
-          html += `<li>${escapeHtml(item.content)} (${escapeHtml(payer)}): <b>${amt}원</b></li>`;
-        });
-        html += '</ul>';
-        html += '</div>';
+      // 출국 착용 배너 업데이트
+      const wornItems = ITEMS_DATA.filter(i => i.worn && i.qty > 0);
+      const wornBanner = document.getElementById('worn-banner');
+      if (wornItems.length > 0) {
+        wornBanner.classList.remove('hidden');
+        document.getElementById('worn-list').textContent = wornItems.map(i => i.name).join(', ');
+      } else {
+        wornBanner.classList.add('hidden');
       }
 
-      html += `
-        <button class="primary-btn" onclick="saveSettlementAsMemo()" style="margin-top:14px; margin-bottom:0; background:#0284c7; padding:10px; font-size:13px;">
-          📝 이 정산 결과 메모로 저장하기
-        </button>
-      `;
+      // 캐리어 좌/우 공간 밸런스 배치
+      const halfCap = maxCap / 2;
+      const leftPouches = [];
+      const rightPouches = [];
+      let rightSum = 0;
 
-      box.innerHTML = html;
-    } catch (e) {
-      alert(e.message);
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  async function saveSettlementAsMemo() {
-    if (!lastSettlementResult) {
-      alert("먼저 송금 계산을 실행해주세요.");
-      return;
-    }
-
-    const res = lastSettlementResult;
-    const t = today();
-
-    let memoText = `💰 [정산 완료] 총 ${Number(res.totalAmount).toLocaleString()}원\n`;
-    memoText += `• 참여: ${res.memberCount}명 (1인당 ${Number(res.perPerson).toLocaleString()}원)\n`;
-
-    if (res.transfers && res.transfers.length > 0) {
-      memoText += `\n[송금 가이드]\n`;
-      res.transfers.forEach(t => {
-        memoText += `• ${t.from} ➡️ ${t.to}: ${Number(t.amount).toLocaleString()}원\n`;
-      });
-    } else {
-      memoText += `\n(추가 송금 없음 - 정산 완료)\n`;
-    }
-
-    if (lastIncludedItems && lastIncludedItems.length > 0) {
-      memoText += `\n[포함된 결제 내역]\n`;
-      lastIncludedItems.forEach((item, idx) => {
-        const amt = Number(item.amount || 0).toLocaleString();
-        const payer = item.registrant || item.registeredBy || item.user || "미지정";
-        memoText += `${idx + 1}. ${item.content} (${payer}): ${amt}원\n`;
-      });
-    }
-
-    if (!confirm("포함된 결제 내역과 함께 메모 탭에 저장할까요?")) return;
-
-    showLoading(true);
-    try {
-      await api("addMemo", {
-        date: t,
-        memo: memoText.trim(),
-        note: "정산 계산기 자동 생성"
+      // 우선순위 정렬: 우측 바퀴 쪽(priority 1)부터 먼저 배치하되, 우측 용량이 반을 넘으면 가벼운 큐브는 좌측으로 이동
+      const sorted = [...pouches].sort((a, b) => a.priority - b.priority);
+      sorted.forEach(p => {
+        if (p.side === 'right' && (rightSum + p.vol <= halfCap * 1.15 || p.priority <= 2)) {
+          rightPouches.push(p);
+          rightSum += p.vol;
+        } else {
+          leftPouches.push(p);
+        }
       });
 
-      alert("결제 건 목록이 포함된 정산 결과가 메모에 저장되었습니다!\n'메모' 탭에서 확인할 수 있습니다.");
-    } catch (err) {
-      alert("메모 저장 실패: " + err.message);
-    } finally {
-      showLoading(false);
-    }
-  }
+      // 우측은 화면상 위(손잡이: priority 큰 것) -> 아래(바퀴: priority 작은 것) 순서로 보이게 정렬
+      rightPouches.sort((a, b) => b.priority - a.priority);
 
-  async function addSettlement() {
-    const date = document.getElementById("settlementDate").value;
-    const content = document.getElementById("settlementContent").value.trim();
-    const amount = document.getElementById("settlementAmount").value;
-    const note = document.getElementById("settlementNote").value.trim();
-
-    if (!date || !content || !amount) {
-      alert("날짜, 내용, 금액을 입력해주세요.");
-      return;
+      renderCompartment('left-compartment', leftPouches, halfCap, keepSouvenir ? souvenirCap : 0);
+      renderCompartment('right-compartment', rightPouches, halfCap, 0);
     }
 
-    showLoading(true);
-    try {
-      await api("addSettlement", { date, content, amount, note });
-      document.getElementById("settlementContent").value = "";
-      document.getElementById("settlementAmount").value = "";
-      document.getElementById("settlementNote").value = "";
-      alert("지출 내역이 등록되었습니다.");
-      await loadSettlements();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      showLoading(false);
-    }
-  }
+    // 캐리어 좌/우 구획 내 이너백 블록 렌더링
+    function renderCompartment(containerId, pouches, sideCap, souvenirReserve) {
+      const container = document.getElementById(containerId);
+      let html = '';
 
-  async function deleteSettlement(id) {
-    if (!confirm("이 지출 내역을 삭제할까요?")) return;
-    showLoading(true);
-    try {
-      await api("deleteSettlement", { id, row: id });
-      await loadSettlements();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  /* 메모 & 검색 */
-  async function loadMemos() {
-    const box = document.getElementById("memoList");
-    box.innerHTML = '<div class="empty">불러오는 중...</div>';
-    try {
-      const result = await api("getMemos");
-      const data = getApiData(result, []);
-      memos = Array.isArray(data) ? data : (data.memos || result.memos || []);
-      memos.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
-      filterMemos();
-    } catch (error) {
-      box.innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
-    }
-  }
-
-  function filterMemos() {
-    const q = (document.getElementById("memoSearchInput").value || "").toLowerCase().trim();
-    let filtered = memos;
-    if (q) {
-      filtered = filtered.filter(item => {
-        const text = String(item.memo || "").toLowerCase();
-        const note = String(item.note || "").toLowerCase();
-        const user = String(item.registrant || item.registeredBy || "").toLowerCase();
-        return text.includes(q) || note.includes(q) || user.includes(q);
-      });
-    }
-    renderMemos(filtered);
-  }
-
-  function renderMemos(listToRender = memos) {
-    const box = document.getElementById("memoList");
-    const countTitle = document.getElementById("memoListTitle");
-    if (countTitle) {
-      countTitle.textContent = `메모 목록 (${listToRender.length}건)`;
-    }
-
-    if (!listToRender.length) {
-      box.innerHTML = '<div class="empty">등록된 메모가 없습니다.</div>';
-      return;
-    }
-
-    box.innerHTML = listToRender.map(item => {
-      const id = getItemId(item);
-      return `
-        <div class="item">
-          <div class="item-main" style="white-space:pre-wrap;">📝 ${escapeHtml(item.memo || "")}</div>
-          <div class="item-meta">${escapeHtml(item.date || "")}${item.note ? "<br>비고: " + escapeHtml(item.note) : ""}<br>등록자: ${escapeHtml(item.registrant || item.registeredBy || "")}</div>
-          <div class="item-actions">
-            <button class="small-btn" onclick='openEdit("memo", ${id})'>수정</button>
-            <button class="small-btn delete" onclick='deleteMemo(${id})'>삭제</button>
+      // 좌측 상단에 기념품 여유 공간 점선 박스 표시
+      if (souvenirReserve > 0) {
+        const heightPx = Math.max(38, Math.round((souvenirReserve / sideCap) * 280));
+        html += `
+          <div style="min-height:${heightPx}px" class="w-full rounded-xl border-2 border-dashed border-emerald-500/70 bg-emerald-50/50 p-2 flex flex-col items-center justify-center text-center">
+            <span class="text-[11px] font-bold text-emerald-800">🛍️ 기념품·쇼핑 여유 공간</span>
+            <span class="text-[10px] text-emerald-600">${souvenirReserve}칸 비워둠</span>
           </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  async function addMemo() {
-    const date = document.getElementById("memoDate").value;
-    const memo = document.getElementById("memoText").value.trim();
-    const note = document.getElementById("memoNote").value.trim();
-    if (!date || !memo) { alert("날짜와 메모를 입력해주세요."); return; }
-
-    showLoading(true);
-    try {
-      await api("addMemo", { date, memo, note });
-      document.getElementById("memoText").value = "";
-      document.getElementById("memoNote").value = "";
-      alert("메모가 등록되었습니다.");
-      await loadMemos();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  async function deleteMemo(id) {
-    if (!confirm("이 메모를 삭제할까요?")) return;
-    showLoading(true);
-    try {
-      await api("deleteMemo", { id, row: id });
-      await loadMemos();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  /* 수정 모달 */
-  function openEdit(type, id) {
-    let data = null;
-    const targetRow = Number(id);
-
-    if (type === "schedule") {
-      data = schedules.find(item => getItemId(item) === targetRow);
-    }
-    if (type === "settlement") {
-      data = settlements.find(item => getItemId(item) === targetRow);
-    }
-    if (type === "memo") {
-      data = memos.find(item => getItemId(item) === targetRow);
-    }
-
-    if (!data) {
-      alert("수정할 데이터를 찾을 수 없습니다.");
-      return;
-    }
-
-    editType = type;
-    editRow = targetRow;
-    editData = data;
-    const fields = document.getElementById("modalFields");
-
-    if (type === "schedule") {
-      document.getElementById("modalTitle").textContent = "일정 수정";
-      fields.innerHTML = `
-        <div class="field"><label>날짜</label><input id="editDate" type="date" value="${escapeHtml(data.date || "")}"></div>
-        <div class="field"><label>시간</label><input id="editTime" type="time" value="${escapeHtml(data.time || "")}"></div>
-        <div class="field"><label>일정</label><input id="editTitle" value="${escapeHtml(data.title || data.schedule || "")}"></div>
-      `;
-    }
-    if (type === "settlement") {
-      document.getElementById("modalTitle").textContent = "지출 수정";
-      fields.innerHTML = `
-        <div class="field"><label>날짜</label><input id="editDate" type="date" value="${escapeHtml(data.date || "")}"></div>
-        <div class="field"><label>내용</label><input id="editContent" value="${escapeHtml(data.content || "")}"></div>
-        <div class="field"><label>금액</label><input id="editAmount" type="number" value="${escapeHtml(data.amount || "")}"></div>
-        <div class="field"><label>비고</label><input id="editNote" value="${escapeHtml(data.note || "")}"></div>
-      `;
-    }
-    if (type === "memo") {
-      document.getElementById("modalTitle").textContent = "메모 수정";
-      fields.innerHTML = `
-        <div class="field"><label>날짜</label><input id="editDate" type="date" value="${escapeHtml(data.date || "")}"></div>
-        <div class="field"><label>메모</label><textarea id="editMemo">${escapeHtml(data.memo || "")}</textarea></div>
-        <div class="field"><label>비고</label><input id="editNote" value="${escapeHtml(data.note || "")}"></div>
-      `;
-    }
-
-    document.getElementById("editModal").classList.add("show");
-  }
-
-  function closeModal() {
-    document.getElementById("editModal").classList.remove("show");
-    editType = ""; editRow = null; editData = null;
-  }
-
-  async function saveEdit() {
-    if (!editType || editRow === null) return;
-    showLoading(true);
-    try {
-      if (editType === "schedule") {
-        const date = document.getElementById("editDate").value;
-        const time = document.getElementById("editTime").value;
-        const title = document.getElementById("editTitle").value.trim();
-        if (!date || !title) throw new Error("날짜와 일정을 입력해주세요.");
-        await api("updateSchedule", { id: editRow, row: editRow, date, time, title });
-        closeModal();
-        await loadSchedules();
+        `;
       }
-      if (editType === "settlement") {
-        const date = document.getElementById("editDate").value;
-        const content = document.getElementById("editContent").value.trim();
-        const amount = document.getElementById("editAmount").value;
-        const note = document.getElementById("editNote").value.trim();
-        if (!date || !content || !amount) throw new Error("날짜, 내용, 금액을 입력해주세요.");
-        await api("updateSettlement", { id: editRow, row: editRow, date, content, amount, note });
-        closeModal();
-        await loadSettlements();
-      }
-      if (editType === "memo") {
-        const date = document.getElementById("editDate").value;
-        const memo = document.getElementById("editMemo").value.trim();
-        const note = document.getElementById("editNote").value.trim();
-        if (!date || !memo) throw new Error("날짜와 메모를 입력해주세요.");
-        await api("updateMemo", { id: editRow, row: editRow, date, memo, note });
-        closeModal();
-        await loadMemos();
-      }
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      showLoading(false);
-    }
-  }
 
-  /* 뉴스 */
-  function showNews() { showPage("news"); }
-
-  async function loadNews() {
-    const box = document.getElementById("newsList");
-    box.innerHTML = '<div class="empty">뉴스를 불러오는 중...</div>';
-    showLoading(true);
-    try {
-      const result = await api("getNews");
-      const data = getApiData(result, {});
-      const items = Array.isArray(data) ? data : (data.items || data.news || result.items || result.news || []);
-      const briefing = !Array.isArray(data) ? (data.briefing || result.briefing || "") : "";
-
-      let html = "";
-      if (briefing) {
-        html += '<div class="news-briefing">' + escapeHtml(briefing) + '</div>';
-      }
-      if (!items.length) {
-        box.innerHTML = html || '<div class="empty">뉴스가 없습니다.</div>';
+      if (pouches.length === 0 && souvenirReserve === 0) {
+        container.innerHTML = `<div class="m-auto text-xs text-slate-400 text-center py-10">비어 있음</div>`;
         return;
       }
 
-      html += items.map(item => `
-        <div class="news-card" onclick='openNews(${JSON.stringify(item.link || "")})'>
-          <div class="news-title">${escapeHtml(item.title || item.name || "")}</div>
-          <div class="news-meta">${escapeHtml(item.pubDate || item.date || "")}</div>
-        </div>
-      `).join("");
+      html += pouches.map(p => {
+        const heightPx = Math.max(42, Math.min(140, Math.round((p.vol / sideCap) * 290)));
+        const safeTitle = p.title.replace(/'/g, "\\'");
+        const safeItems = p.itemsDesc.replace(/'/g, "\\'");
+        const safeTip = p.tip.replace(/'/g, "\\'");
 
-      box.innerHTML = html;
-    } catch (error) {
-      box.innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
-    } finally {
-      showLoading(false);
+        return `
+          <div onclick="showGuide('${safeTitle}', '${safeItems}', '${safeTip}')" 
+               style="min-height:${heightPx}px"
+               class="pouch-block cursor-pointer w-full rounded-xl border-2 ${p.color} p-2.5 flex flex-col justify-between shadow-sm">
+            <div class="flex items-start justify-between gap-1">
+              <span class="text-xs font-extrabold leading-tight">${p.title}</span>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/70 whitespace-nowrap">${p.badge}</span>
+            </div>
+            <div class="text-[10px] opacity-80 truncate mt-1">${p.itemsDesc}</div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = html;
     }
-  }
 
-  function openNews(url) {
-    if (!url || url === "#") return;
-    if (tg && tg.openLink) tg.openLink(url);
-    else window.open(url, "_blank");
-  }
-
-  /* AI */
-  async function askAI() {
-    const question = document.getElementById("aiQuestion").value.trim();
-    if (!question) { alert("질문을 입력해주세요."); return; }
-    showLoading(true);
-    try {
-      const result = await api("askAI", { question });
-      const data = getApiData(result, "");
-      const answer = typeof data === "string" ? data : (data.answer || data.text || result.answer || "응답이 없습니다.");
-      document.getElementById("aiAnswer").innerHTML = '<div class="ai-answer">' + escapeHtml(answer) + '</div>';
-    } catch (error) {
-      document.getElementById("aiAnswer").innerHTML = '<div class="ai-answer">' + escapeHtml(error.message) + '</div>';
-    } finally {
-      showLoading(false);
+    // 이너백 클릭 시 하단 가이드 출력
+    function showGuide(title, items, tip) {
+      document.getElementById('guide-title').innerHTML = `<span>📦 ${title}</span>`;
+      document.getElementById('guide-desc').innerHTML = `
+        <div class="text-amber-200 font-semibold mb-1">포함 품목: ${items}</div>
+        <div>${tip}</div>
+      `;
     }
-  }
 
-  function setDefaultDates() {
-    const t = today();
-    const sDate = document.getElementById("scheduleDate");
-    const stDate = document.getElementById("settlementDate");
-    const mDate = document.getElementById("memoDate");
-    if (sDate) sDate.value = t;
-    if (stDate) stDate.value = t;
-    if (mDate) mDate.value = t;
-  }
+    // 5. 프리셋 원클릭 적용
+    function applyPreset(type) {
+      ITEMS_DATA.forEach(i => { i.qty = 0; i.compressed = false; i.worn = false; i.thick = 1.0; });
 
-  function haptic() {
-    try {
-      if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred("light");
-    } catch (e) {}
-  }
+      if (type === 'summer') {
+        setSuitcaseSize(20);
+        document.getElementById('opt-expand').checked = false;
+        setPresetItem('tshirt', 4, 0.7, false, false);
+        setPresetItem('shorts', 3, 0.7, false, false);
+        setPresetItem('cardigan', 1, 0.7, false, false);
+        setPresetItem('underwear', 4, 1.0, false, false);
+        setPresetItem('socks', 3, 1.0, false, false);
+        setPresetItem('swimwear', 1, 1.0, false, false);
+        setPresetItem('slippers', 1, 1.0, false, false);
+        setPresetItem('acc', 1, 1.0, false, false);
+        setPresetItem('wash_basic', 1, 0.7, false, false);
+        setPresetItem('cosmetics', 1, 0.7, false, false);
+        setPresetItem('charger', 1, 1.0, false, false);
+        setPresetItem('medicine', 1, 1.0, false, false);
+        setPresetItem('umbrella', 1, 1.0, false, false);
+        setPresetItem('powerbank', 1, 1.0, false, false);
+        setPresetItem('passport', 1, 1.0, false, false);
+      } else if (type === 'winter') {
+        setSuitcaseSize(24);
+        document.getElementById('opt-expand').checked = false;
+        setPresetItem('tshirt', 3, 1.0, false, false);
+        setPresetItem('knit', 3, 1.8, true, false);
+        setPresetItem('slacks', 1, 1.8, false, false);
+        setPresetItem('jeans', 1, 1.8, false, false);
+        setPresetItem('padding', 1, 1.8, false, true); // 헤비패딩은 출국 시 착용!
+        setPresetItem('coat', 1, 1.8, true, false);
+        setPresetItem('underwear', 5, 1.0, false, false);
+        setPresetItem('socks', 5, 1.0, false, false);
+        setPresetItem('wash_basic', 1, 1.0, false, false);
+        setPresetItem('cosmetics', 1, 1.0, false, false);
+        setPresetItem('charger', 1, 1.0, false, false);
+        setPresetItem('camera', 1, 1.0, false, false);
+        setPresetItem('medicine', 1, 1.0, false, false);
+        setPresetItem('powerbank', 1, 1.0, false, false);
+        setPresetItem('passport', 1, 1.0, false, false);
+      } else if (type === 'long') {
+        setSuitcaseSize(28);
+        document.getElementById('opt-expand').checked = true;
+        setPresetItem('tshirt', 6, 1.0, true, false);
+        setPresetItem('shirt', 2, 1.0, true, false);
+        setPresetItem('knit', 3, 1.0, true, false);
+        setPresetItem('shorts', 2, 1.0, true, false);
+        setPresetItem('slacks', 2, 1.0, true, false);
+        setPresetItem('jeans', 2, 1.0, false, false);
+        setPresetItem('pajama', 2, 1.0, true, false);
+        setPresetItem('cardigan', 1, 1.0, false, false);
+        setPresetItem('padding', 1, 1.0, true, false);
+        setPresetItem('underwear', 8, 1.0, true, false);
+        setPresetItem('socks', 8, 1.0, false, false);
+        setPresetItem('slippers', 1, 1.0, false, false);
+        setPresetItem('sneakers', 1, 1.0, false, false);
+        setPresetItem('wash_basic', 1, 1.6, false, false);
+        setPresetItem('cosmetics', 1, 1.6, false, false);
+        setPresetItem('hair_tool', 1, 1.0, false, false);
+        setPresetItem('charger', 1, 1.0, false, false);
+        setPresetItem('camera', 1, 1.0, false, false);
+        setPresetItem('medicine', 1, 1.0, false, false);
+        setPresetItem('umbrella', 1, 1.0, false, false);
+        setPresetItem('powerbank', 1, 1.0, false, false);
+        setPresetItem('laptop', 1, 1.0, false, false);
+        setPresetItem('passport', 1, 1.0, false, false);
+      }
 
-  document.addEventListener("click", function(event) {
-    if (event.target && event.target.closest && event.target.closest("button")) {
-      haptic();
+      renderItemsList();
+      updateSimulation();
     }
-  });
 
-  document.getElementById("editModal").addEventListener("click", function(event) {
-    if (event.target === this) closeModal();
-  });
+    function setPresetItem(id, qty, thick, compressed, worn) {
+      const item = ITEMS_DATA.find(i => i.id === id);
+      if (!item) return;
+      item.qty = qty;
+      item.thick = thick;
+      item.compressed = compressed;
+      item.worn = worn;
+    }
 
-  document.addEventListener("DOMContentLoaded", async function() {
-    if (!initTelegram()) return;
-    setDefaultDates();
-    await loadHome();
-  });
-</script>
+    function resetAll() {
+      ITEMS_DATA.forEach(i => { i.qty = 0; i.compressed = false; i.worn = false; i.thick = 1.0; });
+      renderItemsList();
+      updateSimulation();
+    }
 
+    // 초기 실행
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCategoryTabs();
+      setSuitcaseSize(24);
+      renderItemsList();
+      updateSimulation();
+    });
+  </script>
 </body>
 </html>
